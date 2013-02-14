@@ -1,0 +1,62 @@
+#!/bin/bash
+
+#############################################
+# cvsClean                                  #
+#                                           #
+# if have many unwanted changes in your     #
+# workspace and you want the workspace clean#
+# like new ,then this is for you            #
+#                                           #
+# Author: Deepak Vokaliga                   #
+#                                           #
+# Version: 1.0                              #
+#############################################
+
+which cilist > /dev/null 2>&1
+if [ $? -gt 0 ]; then
+    echo -e "$(tput bold)${txtbld}$(tput setaf 1) ERROR!: cilist doesnt exists : Check you PATH$(tput sgr0)"
+    exit 1
+fi
+
+# Directory Check
+CVS_DIR="CVS"
+if [ -d $CVS_DIR ]; then
+   echo "Working directory is ${txtbld}$(tput setaf 2)`pwd`$(tput sgr0)"
+else
+   echo "$(tput bold)${txtbld}$(tput setaf 1)ERROR: You are in `pwd` which doesn't appear to be under CVS Control$(tput sgr0)"
+   exit 1
+fi
+
+echo "Finding changed files in your workspace $(tput setaf 2)`pwd`$(tput sgr0)"
+i=0
+FILES=(`cilist`)
+count=${#FILES[*]}
+if [[ $count == 0 ]]; then
+   echo "$(tput bold)$(tput setaf 3)No files to trash ...its already clean$(tput sgr0)!"
+   exit 0
+fi
+
+while [ $i -lt $count ]; do
+   echo "$(tput setaf 3)${FILES[$i]}$(tput sgr0)"
+   let i++
+done
+
+echo "${txtbld}$(tput setaf 5)All the above files will be reverted to top of the branch"
+read -p "Are you sure you want to trash all these changes? <yes/no> " prompt
+echo "$(tput sgr0)"
+if [[ $prompt == "YES" || $prompt == "yes" || $prompt == "Yes" ]]
+then
+  echo "You said $prompt - Trashing..."
+  i=0
+  while [ $i -lt $count ]; do
+     echo "Trashing $(tput setaf 3)${FILES[$i]}$(tput sgr0) and setting it to top of the branch"
+     rm ${FILES[$i]}
+     cvs update ${FILES[$i]} > /dev/null 2>&1
+     let i++
+  done
+  exit 0
+else
+   echo "NOTHING DONE"
+  exit 0
+fi
+exit 0
